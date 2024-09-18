@@ -1,11 +1,12 @@
 // TodoApp.js
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { collection, addDoc, getDocs, deleteDoc, doc } from "firebase/firestore";
 import { db } from "./firebaseConfig"; // import the Firestore db
 
 const App = () => {
-  const [task, setTask] = useState("");
+  // const [task, setTask] = useState("");
   const [todos, setTodos] = useState([]);
+  const todoVal = useRef();
 
   // Fetch todos from Firestore on component mount
   useEffect(() => {
@@ -25,15 +26,22 @@ const App = () => {
     e.preventDefault();
     if (task.trim() === "") return;
 
-    const newTask = {
-      task,
-      completed: false,
-    };
+    // const newTask = {
+    //   task,
+    //   completed: false,
+    // };
+  
 
     try {
-      const docRef = await addDoc(collection(db, "todos"), newTask);
+//       // Add a new document with a generated id.
+// const docRef = await addDoc(collection(db, "cities"), {
+//   name: "Tokyo",
+//   country: "Japan"
+// });
+console.log("Document written with ID: ", docRef.id);
+      const docRef = await addDoc(collection(db, "todos"), todoVal.current.value);
       setTodos([...todos, { ...newTask, id: docRef.id }]); // Update the state
-      setTask("");
+      // setTask("");
     } catch (error) {
       console.error("Error adding document: ", error);
     }
@@ -56,8 +64,8 @@ const App = () => {
       <form onSubmit={handleAddTask}>
         <input
           type="text"
-          value={task}
-          onChange={(e) => setTask(e.target.value)}
+          // value={task}
+          ref={todoVal}
           placeholder="Enter a task"
         />
         <button type="submit">Add Task</button>
