@@ -1,0 +1,67 @@
+/* App.css */
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    text-align: center;
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  form {
+    margin-bottom: 20px;
+  }
+  
+  input {
+    padding: 10px;
+    width: 75%;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    margin-right: 10px;
+  }
+  
+  button {
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  button:hover {
+    background-color: #0056b3;
+  }
+  
+  .todo-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .todo-item h2 {
+    margin: 0;
+    font-size: 18px;
+  }
+  
+  .todo-item button {
+    margin-left: 10px;
+    background-color: #dc3545;
+  }
+  
+  .todo-item button.edit {
+    background-color: #ffc107;
+  }
+  
+  .todo-item button:hover {
+    opacity: 0.8;
+  }
+  
+  .empty-message {
+    color: #888;
+  }
+  

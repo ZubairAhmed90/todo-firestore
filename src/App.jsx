@@ -1,86 +1,92 @@
-// TodoApp.js
-import React, { useState, useEffect, useRef } from "react";
-import { collection, addDoc, getDocs, deleteDoc, doc } from "firebase/firestore";
-import { db } from "./firebaseConfig"; // import the Firestore db
+import React, { useEffect, useRef, useState } from "react";
+import { getFirestore, addDoc, collection, getDocs, deleteDoc, doc, updateDoc } from "firebase/firestore/lite";
+import {app,db} from "./firebaseConfig"
+import "./App.css";
 
-const App = () => {
-  // const [task, setTask] = useState("");
-  const [todos, setTodos] = useState([]);
+function App() {
   const todoVal = useRef();
+  const db = getFirestore(app);
+  const [todo, setTodo] = useState([]);
 
-  // Fetch todos from Firestore on component mount
   useEffect(() => {
-    const fetchTodos = async () => {
-      const querySnapshot = await getDocs(collection(db, "todos"));
-      const todosList = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setTodos(todosList);
-    };
-    fetchTodos();
-  }, []);
+    async function getTodos() { 
+      try {
+        const querySnapshot = await getDocs(collection(db, "todos"));
+        console.log("Fetched todos:", querySnapshot.docs.map(doc => doc.data()));
+        const todosList = [];
+        querySnapshot.forEach((doc) => {
+          todosList.push({ todo: doc.data().todo, id: doc.id });
+        });
+        setTodo(todosList);
+      } catch (error) {
+        console.error("Error fetching todos:", error);
+      }
+    }
+    getTodos();
+  }, [db]);
 
-  // Add a new task to Firestore
-  const handleAddTask = async (e) => {
+  const addTodo = async (e) => {
     e.preventDefault();
-    if (task.trim() === "") return;
-
-    // const newTask = {
-    //   task,
-    //   completed: false,
-    // };
-  
-
+    const newTodo = todoVal.current.value;
     try {
-//       // Add a new document with a generated id.
-// const docRef = await addDoc(collection(db, "cities"), {
-//   name: "Tokyo",
-//   country: "Japan"
-// });
-console.log("Document written with ID: ", docRef.id);
-      const docRef = await addDoc(collection(db, "todos"), todoVal.current.value);
-      setTodos([...todos, { ...newTask, id: docRef.id }]); // Update the state
-      // setTask("");
+      const docRef = await addDoc(collection(db, "todos"), { todo: newTodo });
+      console.log("Added todo:", { todo: newTodo, id: docRef.id });
+      setTodo((prevTodos) => [{ todo: newTodo, id: docRef.id }, ...prevTodos]);
+      todoVal.current.value = "";
     } catch (error) {
-      console.error("Error adding document: ", error);
+      console.error("Error adding todo:", error);
     }
   };
 
-  // Delete a task from Firestore
-  const handleDeleteTask = async (id) => {
+  async function editTodo(index, id) {
+    const editedTodo = prompt("Enter edit todo");
+    if (editedTodo !== null && editedTodo.trim() !== "") {
+      try {
+        const updatedTodos = [...todo];
+        updatedTodos[index].todo = editedTodo;
+        setTodo(updatedTodos);
+        const edit = doc(db, "todos", id);
+        await updateDoc(edit, { todo: editedTodo });
+        console.log("Updated todo:", { todo: editedTodo, id });
+      } catch (error) {
+        console.error("Error editing todo:", error);
+      }
+    }
+  }
+
+  async function deleteTodo(index, id) {
     try {
+      const newTodoList = todo.filter((_, i) => i !== index);
+      setTodo(newTodoList);
       await deleteDoc(doc(db, "todos", id));
-      setTodos(todos.filter((todo) => todo.id !== id)); // Update the state after deletion
+      console.log("Deleted todo:", id);
     } catch (error) {
-      console.error("Error deleting document: ", error);
+      console.error("Error deleting todo:", error);
     }
-  };
+  }
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>Todo App</h1>
-
-      <form onSubmit={handleAddTask}>
-        <input
-          type="text"
-          // value={task}
-          ref={todoVal}
-          placeholder="Enter a task"
-        />
-        <button type="submit">Add Task</button>
+    <div className="container">
+      <h1>Todo List</h1>
+      <form onSubmit={addTodo}>
+        <input type="text" ref={todoVal} placeholder="Enter a todo..." />
+        <button type="submit">Add Todo</button>
       </form>
-
-      <ul>
-        {todos.map((todo) => (
-          <li key={todo.id} style={{ marginTop: "10px" }}>
-            {todo.task}{" "}
-            <button onClick={() => handleDeleteTask(todo.id)}>Delete</button>
-          </li>
-        ))}
-      </ul>
+      {todo.length > 0 ? (
+        todo.map((item, index) => (
+          <div className="todo-item" key={item.id}>
+            <h2>{item.todo}</h2>
+            <div>
+              <button className="edit" onClick={() => editTodo(index, item.id)}>Edit</button>
+              <button onClick={() => deleteTodo(index, item.id)}>Delete</button>
+            </div>
+          </div>
+        ))
+      ) : (
+        <p className="empty-message">No todos yet.</p>
+      )}
     </div>
   );
-};
+}
 
 export default App;
